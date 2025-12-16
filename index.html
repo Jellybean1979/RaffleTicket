@@ -190,7 +190,7 @@ function searchAssignments() {
       document.body.removeChild(link);
     }
 
-   function printStubs() {
+function printStubs() {
   if (issued.length === 0) {
     alert("No tickets issued yet.");
     return;
@@ -211,19 +211,24 @@ function searchAssignments() {
     `;
     printArea.appendChild(stubDiv);
 
-    new QRCode(document.getElementById(`qrcode-${ticket.serial}`), {
-      text: `Ticket Serial: ${ticket.serial} | Assigned To: ${ticket.assignedTo}`,
-      width: 100,
-      height: 100
-    });
+    // Generate QR code safely
+    const qrContainer = document.getElementById(`qrcode-${ticket.serial}`);
+    if (qrContainer) {
+      new QRCode(qrContainer, {
+        text: `Ticket Serial: ${ticket.serial} | Assigned To: ${ticket.assignedTo}`,
+        width: 100,
+        height: 100
+      });
+    }
   });
 
-  // Give QR codes time to render before printing
+  // Delay print to ensure QR codes render
   setTimeout(() => {
     window.print();
     printArea.style.display = "none";
   }, 500);
 }
+
 
       window.print();
       printArea.style.display = "none";
