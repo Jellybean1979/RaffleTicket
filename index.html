@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Raffle Ticket Generator</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { color: #333; }
+    #issuedTickets { margin-top: 20px; }
+    .ticket { padding: 5px; border: 1px solid #ccc; margin: 3px 0; }
+    .highlight { background-color: #f0f8ff; }
+    .summary { padding: 5px; border: 1px solid #666; margin: 3px 0; background-color: #f9f9f9; }
+    .stub {
+      border: 2px dashed #333;
+      padding: 10px;
+      margin: 10px;
+      width: 250px;
+      text-align: center;
+      font-family: 'Courier New', monospace;
+      background: #fff;
+    }
+    .stub h3 { margin: 5px 0; }
+    .stub p { margin: 3px 0; }
+    @media print {
+      body * { visibility: hidden; }
+      #printArea, #printArea * { visibility: visible; }
+      #printArea { position: absolute; left: 0; top: 0; }
+    }
+    /* Modal styling */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+      background: #fff;
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #333;
+      width: 300px;
+      text-align: center;
+    }
+    .modal button { margin: 5px; }
+  </style>
+</head>
+<body>
+  <h1>🎟️ Raffle Ticket Generator</h1>
+
+  <label for="ticketCount">Number of tickets to issue:</label>
+  <input type="number" id="ticketCount" min="1" value="1">
+  <br><br>
+  <label for="assignedTo">Assign tickets to (name):</label>
+  <input type="text" id="assignedTo" placeholder="Enter person's name">
+  <br><br>
+  <button onclick="issueTickets()">Issue Tickets</button>
+  <button onclick="showAssignments()">Show All Assignments</button>
+  <button onclick="showSummary()">Show Summary by Person</button>
+  <button onclick="downloadCSV()">Download CSV</button>
+  <button onclick="printStubs()">Print Ticket Stubs</button>
+  <button onclick="confirmClear()">Clear All Data</button>
+  <br><br>
+  <label for="searchName">Search tickets by name:</label>
+  <input type="text" id="searchName" placeholder="Enter name to search">
+  <button onclick="searchAssignments()">Search</button>
+
+  <div id="issuedTickets">
+    <h2>Issued Tickets</h2>
+    <div id="ticketList"></div>
+  </div>
+
+  <!-- Hidden print area -->
+  <div id="printArea" style="display:none;"></div>
+
+  <!-- Confirmation Modal -->
+  <div id="clearModal" class="modal">
+    <div class="modal-content">
+      <p>⚠️ You are about to clear ALL raffle data. Are you sure?</p>
+      <button onclick="clearData()">Yes, Clear</button>
+      <button onclick="closeModal()">No, Cancel</button>
+    </div>
+  </div>
+
+  <!-- QR Code library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <script>
+    let currentSerial = parseInt(localStorage.getItem("currentSerial")) || 1000;
+    let issued = JSON.parse(localStorage.getItem("issuedTickets")) || [];
+
+    function issueTickets() {
+      const count = parseInt(document.getElementById('ticketCount').value, 10);
+      const name = document.getElementById('assignedTo').value.trim();
+      const ticketList = document.getElementById('ticketList');
+
+      if (!name) {
+        alert("Please enter a name to assign tickets.");
+        return;
+      }
+
+      for (let i = 0; i < count; i++) {
+        currentSerial++;
+        const serial = currentSerial;
+        const ticket = { serial: serial, assignedTo: name };
+        issued.push(ticket);
+
+        const ticketDiv = document.createElement('div');
+        ticketDiv.className = 'ticket';
+        ticketDiv.textContent = "Ticket Serial: " + serial + " | Assigned To: " + name;
+        ticketList.appendChild(ticketDiv);
+      }
+
+      // Save state
+      localStorage.setItem("currentSerial", currentSerial);
+      localStorage.setItem("issuedTickets", JSON.stringify(issued));
+    }
+
+    function showAssignments() {
+      const ticketList = document.getElementById('ticketList');
+      ticketList.innerHTML = "";
+
+      issued.forEach(ticket => {
+        const ticketDiv = document.createElement('div');
+        ticketDiv.className = 'ticket';
+        ticketDiv.textContent = "Ticket Serial: " + ticket.serial + " | Assigned To: " + ticket.assignedTo;
+        ticketList.appendChild(ticketDiv);
+      });
+    }
+
+    function searchAssignments() {
+      const searchName = document.getElementById('searchName').value.trim().toLowerCase();
+      const ticketList = document.getElementById('ticketList');
+      ticketList.innerHTML = "";
+
+      const results = issued.filter(ticket => ticket.assignedTo.toLowerCase() === searchName);
+
+      if (results.length === 0) {
+        ticketList.textContent = "No tickets found for: " + searchName;
+        return;
+      }
+
+      results.forEach(ticket => {
+        const ticketDiv = document.createElement('div');
+        ticketDiv.className = 'ticket highlight';
+        ticketDiv.textContent = "Ticket Serial: " + ticket.serial + " | Assigned To: " + ticket.assignedTo;
+        ticketList.appendChild(ticketDiv);
+      });
+    }
+
+    function showSummary() {
+      const ticketList = document.getElementById('ticketList');
+      ticketList.innerHTML = "";
+
+      const summaryMap = {};
+      issued.forEach(ticket => {
+        summaryMap[ticket.assignedTo] = (summaryMap[ticket.assignedTo] || 0) + 1;
+      });
+
+      for (const [name, count] of Object.entries(summaryMap)) {
+        const summaryDiv = document.createElement('div');
+        summaryDiv.className = 'summary';
+        summaryDiv.textContent = name + " → " + count + " ticket(s)";
+        ticketList.appendChild(summaryDiv);
+      }
+    }
+
+    function downloadCSV() {
+      if (issued.length === 0) {
+        alert("No tickets issued yet.");
+        return;
+      }
+
+      let csvContent = "data:text/csv;charset=utf-8,Serial,Assigned To\n";
+      issued.forEach(ticket => {
+        csvContent += ticket.serial + "," + ticket.assignedTo + "\n";
+      });
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "raffle_tickets.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function printStubs() {
+      if (issued.length === 0) {
+        alert("No tickets issued yet.");
+        return;
+      }
+
+      const printArea = document.getElementById('printArea');
+      printArea.innerHTML = "";
+      printArea.style.display = "block";
+
+      issued.forEach(ticket => {
+        const stubDiv = document.createElement('div');
+        stubDiv.className = 'stub';
+        stubDiv.innerHTML = `
+          <h3>🎟️ Raffle Ticket</h3>
+          <p><strong>Serial:</strong> ${ticket.serial}</p>
+          <p><strong>Assigned To:</strong> ${ticket.assignedTo}</p>
+          <div id="qrcode-${ticket.serial}"></div>
+        `;
+        printArea.appendChild(stubDiv);
+
+        // Generate QR code (serial + name)
+        new QRCode(document.getElementById(`qrcode-${ticket.serial}`), {
+          text: `Ticket Serial: ${ticket.serial} | Assigned To: ${ticket.assignedTo}`,
+          width: 100,
+          height: 100
+        });
+      });
+
+      window.print();
+      printArea.style.display = "none";
+    }
+
+    // Modal functions
+    function confirmClear() {
+      document.getElementById('clearModal').style.display = "block";
+    }
+
+    function closeModal() {
+      document.getElementById('clearModal').style.display = "none";
+    }
+
+    function clearData() {
+      localStorage.removeItem("currentSerial");
+      localStorage.removeItem("issuedTickets");
+      currentSerial = 1000;
+      issued = [];
+      showAssignments();
+      closeModal();
+      alert("All raffle data has been cleared.");
+      // Reset UI inputs for a clean state
+      document.getElementById('assignedTo').value = "";
+      document.getElementById('ticketCount').value = 1;
+      document.getElementById('searchName').value = "";
+    }
+  </script>
+</body>
+</html>
