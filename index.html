@@ -129,29 +129,25 @@
       });
     }
 
-function searchAssignments() {
-  const searchName = document.getElementById('searchName').value.trim().toLowerCase();
-  const ticketList = document.getElementById('ticketList');
-  ticketList.innerHTML = "";
+    function searchAssignments() {
+      const searchName = document.getElementById('searchName').value.trim().toLowerCase();
+      const ticketList = document.getElementById('ticketList');
+      ticketList.innerHTML = "";
 
-  // Use includes() instead of exact match
-  const results = issued.filter(ticket => 
-    ticket.assignedTo.toLowerCase().includes(searchName)
-  );
+      const results = issued.filter(ticket => ticket.assignedTo.toLowerCase() === searchName);
 
-  if (results.length === 0) {
-    ticketList.textContent = "No tickets found for: " + searchName;
-    return;
-  }
+      if (results.length === 0) {
+        ticketList.textContent = "No tickets found for: " + searchName;
+        return;
+      }
 
-  results.forEach(ticket => {
-    const ticketDiv = document.createElement('div');
-    ticketDiv.className = 'ticket highlight';
-    ticketDiv.textContent = "Ticket Serial: " + ticket.serial + " | Assigned To: " + ticket.assignedTo;
-    ticketList.appendChild(ticketDiv);
-  });
-}
-
+      results.forEach(ticket => {
+        const ticketDiv = document.createElement('div');
+        ticketDiv.className = 'ticket highlight';
+        ticketDiv.textContent = "Ticket Serial: " + ticket.serial + " | Assigned To: " + ticket.assignedTo;
+        ticketList.appendChild(ticketDiv);
+      });
+    }
 
     function showSummary() {
       const ticketList = document.getElementById('ticketList');
@@ -190,45 +186,34 @@ function searchAssignments() {
       document.body.removeChild(link);
     }
 
-function printStubs() {
-  if (issued.length === 0) {
-    alert("No tickets issued yet.");
-    return;
-  }
+    function printStubs() {
+      if (issued.length === 0) {
+        alert("No tickets issued yet.");
+        return;
+      }
 
-  const printArea = document.getElementById('printArea');
-  printArea.innerHTML = "";
-  printArea.style.display = "block";
+      const printArea = document.getElementById('printArea');
+      printArea.innerHTML = "";
+      printArea.style.display = "block";
 
-  issued.forEach(ticket => {
-    const stubDiv = document.createElement('div');
-    stubDiv.className = 'stub';
-    stubDiv.innerHTML = `
-      <h3>🎟️ Raffle Ticket</h3>
-      <p><strong>Serial:</strong> ${ticket.serial}</p>
-      <p><strong>Assigned To:</strong> ${ticket.assignedTo}</p>
-      <div id="qrcode-${ticket.serial}"></div>
-    `;
-    printArea.appendChild(stubDiv);
+      issued.forEach(ticket => {
+        const stubDiv = document.createElement('div');
+        stubDiv.className = 'stub';
+        stubDiv.innerHTML = `
+          <h3>🎟️ Raffle Ticket</h3>
+          <p><strong>Serial:</strong> ${ticket.serial}</p>
+          <p><strong>Assigned To:</strong> ${ticket.assignedTo}</p>
+          <div id="qrcode-${ticket.serial}"></div>
+        `;
+        printArea.appendChild(stubDiv);
 
-    // Generate QR code safely
-    const qrContainer = document.getElementById(`qrcode-${ticket.serial}`);
-    if (qrContainer) {
-      new QRCode(qrContainer, {
-        text: `Ticket Serial: ${ticket.serial} | Assigned To: ${ticket.assignedTo}`,
-        width: 100,
-        height: 100
+        // Generate QR code (serial + name)
+        new QRCode(document.getElementById(`qrcode-${ticket.serial}`), {
+          text: `Ticket Serial: ${ticket.serial} | Assigned To: ${ticket.assignedTo}`,
+          width: 100,
+          height: 100
+        });
       });
-    }
-  });
-
-  // Delay print to ensure QR codes render
-  setTimeout(() => {
-    window.print();
-    printArea.style.display = "none";
-  }, 500);
-}
-
 
       window.print();
       printArea.style.display = "none";
@@ -249,8 +234,9 @@ function printStubs() {
       currentSerial = 1000;
       issued = [];
       showAssignments();
-      closeModal();
-      alert("All raffle data has been cleared.");
+      closeModal() 
+
+alert("All raffle data has been cleared.");
       // Reset UI inputs for a clean state
       document.getElementById('assignedTo').value = "";
       document.getElementById('ticketCount').value = 1;
