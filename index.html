@@ -190,34 +190,40 @@ function searchAssignments() {
       document.body.removeChild(link);
     }
 
-    function printStubs() {
-      if (issued.length === 0) {
-        alert("No tickets issued yet.");
-        return;
-      }
+   function printStubs() {
+  if (issued.length === 0) {
+    alert("No tickets issued yet.");
+    return;
+  }
 
-      const printArea = document.getElementById('printArea');
-      printArea.innerHTML = "";
-      printArea.style.display = "block";
+  const printArea = document.getElementById('printArea');
+  printArea.innerHTML = "";
+  printArea.style.display = "block";
 
-      issued.forEach(ticket => {
-        const stubDiv = document.createElement('div');
-        stubDiv.className = 'stub';
-        stubDiv.innerHTML = `
-          <h3>🎟️ Raffle Ticket</h3>
-          <p><strong>Serial:</strong> ${ticket.serial}</p>
-          <p><strong>Assigned To:</strong> ${ticket.assignedTo}</p>
-          <div id="qrcode-${ticket.serial}"></div>
-        `;
-        printArea.appendChild(stubDiv);
+  issued.forEach(ticket => {
+    const stubDiv = document.createElement('div');
+    stubDiv.className = 'stub';
+    stubDiv.innerHTML = `
+      <h3>🎟️ Raffle Ticket</h3>
+      <p><strong>Serial:</strong> ${ticket.serial}</p>
+      <p><strong>Assigned To:</strong> ${ticket.assignedTo}</p>
+      <div id="qrcode-${ticket.serial}"></div>
+    `;
+    printArea.appendChild(stubDiv);
 
-        // Generate QR code (serial + name)
-        new QRCode(document.getElementById(`qrcode-${ticket.serial}`), {
-          text: `Ticket Serial: ${ticket.serial} | Assigned To: ${ticket.assignedTo}`,
-          width: 100,
-          height: 100
-        });
-      });
+    new QRCode(document.getElementById(`qrcode-${ticket.serial}`), {
+      text: `Ticket Serial: ${ticket.serial} | Assigned To: ${ticket.assignedTo}`,
+      width: 100,
+      height: 100
+    });
+  });
+
+  // Give QR codes time to render before printing
+  setTimeout(() => {
+    window.print();
+    printArea.style.display = "none";
+  }, 500);
+}
 
       window.print();
       printArea.style.display = "none";
