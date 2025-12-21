@@ -118,15 +118,18 @@
     }
 
     function showAssignments() {
-      const ticketList = document.getElementById('ticketList');
-      ticketList.innerHTML = "";
+  const ticketList = document.getElementById('ticketList');
+  ticketList.innerHTML = "";
 
-      issued.forEach(ticket => {
-        const ticketDiv = document.createElement('div');
-        ticketDiv.className = 'ticket';
-        ticketDiv.textContent = "Ticket Serial: " + ticket.serial + " | Assigned To: " + ticket.assignedTo;
-        ticketList.appendChild(ticketDiv);
-      });
+  issued.forEach((ticket, index) => {
+    const ticketDiv = document.createElement('div');
+    ticketDiv.className = 'ticket';
+    ticketDiv.innerHTML = `
+      Ticket Serial: ${ticket.serial} | Assigned To: ${ticket.assignedTo}
+      <button onclick="deleteTicket(${index})" style="margin-left:10px;">Delete</button>
+    `;
+    ticketList.appendChild(ticketDiv);
+  });
     }
 
     function searchAssignments() {
@@ -241,6 +244,19 @@ alert("All raffle data has been cleared.");
       document.getElementById('assignedTo').value = "";
       document.getElementById('ticketCount').value = 1;
       document.getElementById('searchName').value = "";
+    }
+
+    function deleteTicket(index) {
+  if (!confirm("Are you sure you want to delete this ticket?")) return;
+
+  issued.splice(index, 1); // remove the ticket
+  localStorage.setItem("issuedTickets", JSON.stringify(issued));
+
+  // Recalculate serials if needed (optional)
+  currentSerial = Math.max(...issued.map(t => t.serial), 1000);
+  localStorage.setItem("currentSerial", currentSerial);
+
+  showAssignments();
     }
   </script>
 </body>
