@@ -49,7 +49,7 @@
 <body>
   <h1>🎟️ Raffle Ticket Generator</h1>
     <strong style="font-size: 0.8em; display: block;">
-    by Gary Langley version 1.1.4
+    by Gary Langley version 1.2.4
   </strong>
 
   <label for="ticketCount">Number of tickets to issue:</label>
@@ -64,6 +64,10 @@
   <button onclick="downloadCSV()">Download CSV</button>
   <button onclick="printStubs()">Print Ticket Stubs</button>
   <button onclick="confirmClear()">Clear All Data</button>
+  <button onclick="exportJSON()">Export JSON</button>
+<input type="file" id="importFile" accept="application/json" style="display:none" onchange="importJSON(event)">
+<button onclick="document.getElementById('importFile').click()">Import JSON</button>
+
   <br><br>
   <label for="searchName">Search tickets by name:</label>
   <input type="text" id="searchName" placeholder="Enter name to search">
@@ -263,6 +267,58 @@ alert("All raffle data has been cleared.");
 
   showAssignments();
     }
+
+    function exportJSON() {
+  const data = {
+    currentSerial: currentSerial,
+    issuedTickets: issued
+  };
+
+  const jsonStr = JSON.stringify(data, null, 2);
+  const blob = new Blob([jsonStr], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "raffle_backup.json";
+  link.click();
+
+  URL.revokeObjectURL(url);
+}
+
+
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+
+      if (!data.issuedTickets || !Array.isArray(data.issuedTickets)) {
+        alert("Invalid JSON file format.");
+        return;
+      }
+
+      // Restore data
+      issued = data.issuedTickets;
+      currentSerial = data.currentSerial || 1000;
+
+      // Save to localStorage
+      localStorage.setItem("issuedTickets", JSON.stringify(issued));
+      localStorage.setItem("currentSerial", currentSerial);
+
+      showAssignments();
+      alert("JSON data imported successfully!");
+    } catch (err) {
+      alert("Error reading JSON file.");
+    }
+  };
+
+  reader.readAsText(file);
+}
+
   </script>
 </body>
 </html>
