@@ -26,6 +26,13 @@
       #printArea, #printArea * { visibility: visible; }
       #printArea { position: absolute; left: 0; top: 0; }
     }
+
+.clickable {
+  color: blue;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
     /* Modal styling */
     .modal {
       display: none;
@@ -49,7 +56,7 @@
 <body>
   <h1>🎟️ Raffle Ticket Generator</h1>
     <strong style="font-size: 0.8em; display: block;">
-    by Gary Langley version 1.2.4
+    by Gary Langley version 1.3.4
   </strong>
 
   <label for="ticketCount">Number of tickets to issue:</label>
@@ -140,27 +147,39 @@
     }
 
     function searchAssignments() {
-  const searchName = document.getElementById('searchName').value.trim().toLowerCase();
+  const query = document.getElementById('searchName').value.trim().toLowerCase();
   const ticketList = document.getElementById('ticketList');
   ticketList.innerHTML = "";
 
-  // Use includes() instead of exact match
-  const results = issued.filter(ticket => 
-    ticket.assignedTo.toLowerCase().includes(searchName)
-  );
+  if (!query) {
+    ticketList.textContent = "Please enter a search term.";
+    return;
+  }
+
+  const results = issued.filter(ticket => {
+    const nameMatch = ticket.assignedTo.toLowerCase().includes(query);
+    const serialMatch = ticket.serial.toString().includes(query);
+    return nameMatch || serialMatch;
+  });
 
   if (results.length === 0) {
-    ticketList.textContent = "No tickets found for: " + searchName;
+    ticketList.textContent = "No tickets found for: " + query;
     return;
   }
 
   results.forEach(ticket => {
     const ticketDiv = document.createElement('div');
     ticketDiv.className = 'ticket highlight';
-    ticketDiv.textContent = "Ticket Serial: " + ticket.serial + " | Assigned To: " + ticket.assignedTo;
+    ticketDiv.innerHTML = `
+      <strong class="clickable" onclick="showTicketPreview(${ticket.serial})">
+        Ticket Serial: ${ticket.serial}
+      </strong>
+      | Assigned To: ${ticket.assignedTo}
+    `;
     ticketList.appendChild(ticketDiv);
   });
-    }
+}
+
     function showSummary() {
       const ticketList = document.getElementById('ticketList');
       ticketList.innerHTML = "";
@@ -318,6 +337,67 @@ function importJSON(event) {
 
   reader.readAsText(file);
 }
+
+    function showTicketPreview(serial) {
+  const ticket = issued.find(t => t.serial === serial);
+  if (!ticket) {
+    alert("Ticket not found.");
+    return;
+  }
+
+  const previewWindow = window.open("", "_blank", "width=400,height=550");
+
+  previewWindow.document.write(`
+    <html>
+    <head>
+      <title>Ticket ${ticket.serial}</title>
+      <style>
+        body { 
+          font-family: Arial, sans-serif; 
+          text-align: center; 
+          padding: 20px; 
+        }
+        .stub {
+          border: 2px dashed #333;
+          padding: 20px;
+          width: 250px;
+          margin: 0 auto 20px auto;
+          font-family: 'Courier New', monospace;
+        }
+        h3 { margin: 10px 0; }
+        button {
+          padding: 10px 15px;
+          font-size: 14px;
+          cursor: pointer;
+          margin-top: 10px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="stub">
+        <h3>🎟️ Raffle Ticket</h3>
+        <p><strong>Serial:</strong> ${ticket.serial}</p>
+        <p><strong>Assigned To:</strong> ${ticket.assignedTo}</p>
+        <div id="qrcode"></div>
+      </div>
+
+      <button onclick="window.print()">Print This Ticket</button>
+
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+      <script>
+        new QRCode(document.getElementById("qrcode"), {
+          text: "Ticket Serial: ${ticket.serial} | Assigned To: ${ticket.assignedTo}",
+          width: 100,
+          height: 100
+        });
+      <\/script>
+    </body>
+    </html>
+  `);
+
+  previewWindow.document.close();
+}
+
 
   </script>
 </body>
