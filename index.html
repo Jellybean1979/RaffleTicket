@@ -57,7 +57,7 @@
 <body>
   <h1>🎟️ Raffle Ticket Generator</h1>
   <strong style="font-size: 0.8em; display: block;">
-    by Gary Langley version 2.3.5
+    by Gary Langley version 2.3.6
   </strong>
 
   <label for="ticketCount">Number of tickets to issue:</label>
@@ -251,7 +251,7 @@
         printArea.appendChild(stubDiv);
 
         // Generate QR code (serial + name)
-        new QRCode(document.getElementById("qrcode-" + ticket.serial), {
+       new QRCode(document.getElementById("qrcode-" + ticket.serial), {
           text: \`Ticket Serial: ${ticket.serial} | Assigned To: ${ticket.assignedTo}\`,
           width: 100,
           height: 100
