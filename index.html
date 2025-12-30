@@ -4,37 +4,155 @@
   <meta charset="UTF-8">
   <title>Raffle Ticket Generator</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    h1 { color: #333; }
-    #issuedTickets { margin-top: 20px; }
-    .ticket { padding: 5px; border: 1px solid #ccc; margin: 3px 0; }
-    .highlight { background-color: #f0f8ff; }
-    .summary { padding: 5px; border: 1px solid #666; margin: 3px 0; background-color: #f9f9f9; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #27283d;
+      color: #e0e0e0;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    #issuedTickets {
+      margin-top: 20px;
+    }
+
+    .ticket {
+      padding: 5px;
+      border: 1px solid #ccc;
+      margin: 3px 0;
+    }
+
+    .highlight {
+      background-color: #f0f8ff;
+    }
+
+    .summary {
+      padding: 5px;
+      border: 1px solid #666;
+      margin: 3px 0;
+      background-color: #f9f9f9;
+    }
+
+    /* Classic raffle stub styling (A-1a-Medium) */
     .stub {
-      border: 2px dashed #333;
-      padding: 10px;
-      margin: 10px;
-      width: 250px;
-      text-align: center;
-      font-family: 'Courier New', monospace;
+      box-sizing: border-box;
+      width: 6.5in;
+      height: 2.5in;
+      border: 2px solid #333;
+      margin: 0.2in;
+      padding: 0.25in;
+      font-family: "Courier New", monospace;
       background: #fff;
+      position: relative;
+      display: inline-block;
+      vertical-align: top;
+      page-break-inside: avoid;
     }
-    .stub h3 { margin: 5px 0; }
-    .stub p { margin: 3px 0; }
+
+    .stub::before,
+    .stub::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 0;
+      border-left: 2px dashed #333;
+      left: 1.1in; /* perforation line */
+    }
+
+    .stub-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #333;
+      padding-bottom: 4px;
+      margin-bottom: 4px;
+    }
+
+    .stub-title {
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .stub-serial {
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .stub-body {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: calc(100% - 32px);
+      padding-top: 4px;
+    }
+
+    .stub-info {
+      flex: 1;
+      padding-right: 0.25in;
+    }
+
+    .stub-info p {
+      margin: 4px 0;
+      font-size: 13px;
+    }
+
+    .stub-qr {
+      width: 1.4in;
+      height: 1.4in;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stub-qr div {
+      margin: 0 auto;
+    }
+
+    /* Print layout */
+    @page {
+      size: letter portrait;
+      margin: 0.5in;
+    }
+
     @media print {
-      body * { visibility: hidden; }
-      #printArea, #printArea * { visibility: visible; }
-      #printArea { position: absolute; left: 0; top: 0; }
+      body * {
+        visibility: hidden;
+      }
+
+      #printArea, #printArea * {
+        visibility: visible;
+      }
+
+      #printArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+      }
+
+      #printArea {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
     }
+
     /* Modal styling */
     .modal {
       display: none;
       position: fixed;
       z-index: 999;
-      left: 0; top: 0;
-      width: 100%; height: 100%;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
       background-color: rgba(0,0,0,0.5);
     }
+
     .modal-content {
       background: #fff;
       margin: 15% auto;
@@ -43,32 +161,45 @@
       width: 300px;
       text-align: center;
     }
-    .modal button { margin: 5px; }
+
+    .modal button {
+      margin: 5px;
+    }
+
+    button {
+      margin: 2px 0;
+    }
   </style>
 </head>
 <body>
   <h1>🎟️ Raffle Ticket Generator</h1>
-    <strong style="font-size: 0.8em; display: block;">
-    by Gary Langley version 1.2.9
+  <strong id="versionTag" style="font-size: 0.8em; display: block;">
+    by Gary Langley — loading version…
   </strong>
 
   <label for="ticketCount">Number of tickets to issue:</label>
   <input type="number" id="ticketCount" min="1" value="1">
   <br><br>
+
   <label for="assignedTo">Assign tickets to (name):</label>
   <input type="text" id="assignedTo" placeholder="Enter person's name">
   <br><br>
+
   <button onclick="issueTickets()">Issue Tickets</button>
   <button onclick="showAssignments()">Show All Assignments</button>
   <button onclick="showSummary()">Show Summary by Person</button>
   <button onclick="downloadCSV()">Download CSV</button>
-  <button onclick="printStubs()">Print Ticket Stubs</button>
+  <button onclick="printStubs()">Print All Ticket Stubs</button>
+  <button onclick="printTicketsByName()">Print Tickets by Name</button>
+  <button onclick="printSingleTicket()">Print Single Ticket</button>
   <button onclick="confirmClear()">Clear All Data</button>
   <button onclick="exportJSON()">Export JSON</button>
-<input type="file" id="importFile" accept="application/json" style="display:none" onchange="importJSON(event)">
-<button onclick="document.getElementById('importFile').click()">Import JSON</button>
+
+  <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importJSON(event)">
+  <button onclick="document.getElementById('importFile').click()">Import JSON</button>
 
   <br><br>
+
   <label for="searchName">Search tickets by name:</label>
   <input type="text" id="searchName" placeholder="Enter name to search">
   <button onclick="searchAssignments()">Search</button>
@@ -94,6 +225,27 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <script>
+    // ===== Commit hash version display =====
+    async function updateCommitHash() {
+      const repo = "jellybean1979/RaffleTicket";  // your repo
+      const branch = "main";                      // change if needed
+
+      try {
+        const response = await fetch(`https://api.github.com/repos/${repo}/commits/${branch}`);
+        const data = await response.json();
+        const hash = data.sha.substring(0, 7);    // short hash
+
+        document.getElementById("versionTag").textContent =
+          `by Gary Langley — build ${hash}`;
+      } catch (err) {
+        document.getElementById("versionTag").textContent =
+          "by Gary Langley — build unknown";
+      }
+    }
+
+    updateCommitHash();
+
+    // ===== Core raffle logic =====
     let currentSerial = parseInt(localStorage.getItem("currentSerial")) || 1000;
     let issued = JSON.parse(localStorage.getItem("issuedTickets")) || [];
 
@@ -125,42 +277,42 @@
     }
 
     function showAssignments() {
-  const ticketList = document.getElementById('ticketList');
-  ticketList.innerHTML = "";
+      const ticketList = document.getElementById('ticketList');
+      ticketList.innerHTML = "";
 
-  issued.forEach((ticket, index) => {
-    const ticketDiv = document.createElement('div');
-    ticketDiv.className = 'ticket';
-    ticketDiv.innerHTML = `
-      Ticket Serial: ${ticket.serial} | Assigned To: ${ticket.assignedTo}
-      <button onclick="deleteTicket(${index})" style="margin-left:10px;">Delete</button>
-    `;
-    ticketList.appendChild(ticketDiv);
-  });
+      issued.forEach((ticket, index) => {
+        const ticketDiv = document.createElement('div');
+        ticketDiv.className = 'ticket';
+        ticketDiv.innerHTML = `
+          Ticket Serial: ${ticket.serial} | Assigned To: ${ticket.assignedTo}
+          <button onclick="deleteTicket(${index})" style="margin-left:10px;">Delete</button>
+        `;
+        ticketList.appendChild(ticketDiv);
+      });
     }
 
     function searchAssignments() {
-  const searchName = document.getElementById('searchName').value.trim().toLowerCase();
-  const ticketList = document.getElementById('ticketList');
-  ticketList.innerHTML = "";
+      const searchName = document.getElementById('searchName').value.trim().toLowerCase();
+      const ticketList = document.getElementById('ticketList');
+      ticketList.innerHTML = "";
 
-  // Use includes() instead of exact match
-  const results = issued.filter(ticket => 
-    ticket.assignedTo.toLowerCase().includes(searchName)
-  );
+      const results = issued.filter(ticket =>
+        ticket.assignedTo.toLowerCase().includes(searchName)
+      );
 
-  if (results.length === 0) {
-    ticketList.textContent = "No tickets found for: " + searchName;
-    return;
-  }
+      if (results.length === 0) {
+        ticketList.textContent = "No tickets found for: " + searchName;
+        return;
+      }
 
-  results.forEach(ticket => {
-    const ticketDiv = document.createElement('div');
-    ticketDiv.className = 'ticket highlight';
-    ticketDiv.textContent = "Ticket Serial: " + ticket.serial + " | Assigned To: " + ticket.assignedTo;
-    ticketList.appendChild(ticketDiv);
-  });
+      results.forEach(ticket => {
+        const ticketDiv = document.createElement('div');
+        ticketDiv.className = 'ticket highlight';
+        ticketDiv.textContent = "Ticket Serial: " + ticket.serial + " | Assigned To: " + ticket.assignedTo;
+        ticketList.appendChild(ticketDiv);
+      });
     }
+
     function showSummary() {
       const ticketList = document.getElementById('ticketList');
       ticketList.innerHTML = "";
@@ -198,6 +350,27 @@
       document.body.removeChild(link);
     }
 
+    // ===== Printing functions with classic stub styling =====
+    function buildStub(ticket, qrElementId) {
+      const stubDiv = document.createElement('div');
+      stubDiv.className = 'stub';
+      stubDiv.innerHTML = `
+        <div class="stub-header">
+          <div class="stub-title">🎟️ RAFFLE TICKET</div>
+          <div class="stub-serial">Serial: ${ticket.serial}</div>
+        </div>
+        <div class="stub-body">
+          <div class="stub-info">
+            <p><strong>Assigned To:</strong> ${ticket.assignedTo}</p>
+          </div>
+          <div class="stub-qr">
+            <div id="${qrElementId}"></div>
+          </div>
+        </div>
+      `;
+      return stubDiv;
+    }
+
     function printStubs() {
       if (issued.length === 0) {
         alert("No tickets issued yet.");
@@ -207,20 +380,15 @@
       const printArea = document.getElementById('printArea');
       printArea.innerHTML = "";
       printArea.style.display = "block";
+      printArea.style.display = "flex";
+      printArea.style.flexWrap = "wrap";
 
       issued.forEach(ticket => {
-        const stubDiv = document.createElement('div');
-        stubDiv.className = 'stub';
-        stubDiv.innerHTML = `
-          <h3>🎟️ Raffle Ticket</h3>
-          <p><strong>Serial:</strong> ${ticket.serial}</p>
-          <p><strong>Assigned To:</strong> ${ticket.assignedTo}</p>
-          <div id="qrcode-${ticket.serial}"></div>
-        `;
+        const qrId = `qrcode-${ticket.serial}`;
+        const stubDiv = buildStub(ticket, qrId);
         printArea.appendChild(stubDiv);
 
-        // Generate QR code (serial + name)
-        new QRCode(document.getElementById(`qrcode-${ticket.serial}`), {
+        new QRCode(document.getElementById(qrId), {
           text: `Ticket Serial: ${ticket.serial} | Assigned To: ${ticket.assignedTo}`,
           width: 100,
           height: 100
@@ -231,7 +399,71 @@
       printArea.style.display = "none";
     }
 
-    // Modal functions
+    function printSingleTicket() {
+      const serial = prompt("Enter the ticket serial number to print:");
+      if (!serial) return;
+
+      const ticket = issued.find(t => t.serial == serial);
+      if (!ticket) {
+        alert("Ticket not found.");
+        return;
+      }
+
+      const printArea = document.getElementById('printArea');
+      printArea.innerHTML = "";
+      printArea.style.display = "block";
+      printArea.style.display = "flex";
+      printArea.style.flexWrap = "wrap";
+
+      const qrId = "qrcode-single";
+      const stubDiv = buildStub(ticket, qrId);
+      printArea.appendChild(stubDiv);
+
+      new QRCode(document.getElementById(qrId), {
+        text: `Ticket Serial: ${ticket.serial} | Assigned To: ${ticket.assignedTo}`,
+        width: 100,
+        height: 100
+      });
+
+      window.print();
+      printArea.style.display = "none";
+    }
+
+    function printTicketsByName() {
+      const nameInput = prompt("Enter the name to print tickets for:");
+      if (!nameInput) return;
+      const name = nameInput.trim().toLowerCase();
+
+      const results = issued.filter(t => t.assignedTo.toLowerCase() === name);
+
+      if (results.length === 0) {
+        alert("No tickets found for that name.");
+        return;
+      }
+
+      const printArea = document.getElementById('printArea');
+      printArea.innerHTML = "";
+      printArea.style.display = "block";
+      printArea.style.display = "flex";
+      printArea.style.flexWrap = "wrap";
+
+      results.forEach(ticket => {
+        const qrId = `qrcode-name-${ticket.serial}`;
+        const stubDiv = buildStub(ticket, qrId);
+        printArea.appendChild(stubDiv);
+
+        new QRCode(document.getElementById(qrId), {
+          text: `Ticket Serial: ${ticket.serial} | Assigned To: ${ticket.assignedTo}`,
+          width: 100,
+          height: 100
+        });
+      });
+
+      window.print();
+      printArea.style.display = "none";
+    }
+
+    // ===== Modal and data management =====
     function confirmClear() {
       document.getElementById('clearModal').style.display = "block";
     }
@@ -246,79 +478,77 @@
       currentSerial = 1000;
       issued = [];
       showAssignments();
-      closeModal() 
+      closeModal();
 
-alert("All raffle data has been cleared.");
-      // Reset UI inputs for a clean state
+      alert("All raffle data has been cleared.");
+
       document.getElementById('assignedTo').value = "";
       document.getElementById('ticketCount').value = 1;
       document.getElementById('searchName').value = "";
     }
 
     function deleteTicket(index) {
-  if (!confirm("Are you sure you want to delete this ticket?")) return;
+      if (!confirm("Are you sure you want to delete this ticket?")) return;
 
-  issued.splice(index, 1); // remove the ticket
-  localStorage.setItem("issuedTickets", JSON.stringify(issued));
-
-  // Recalculate serials if needed (optional)
-  currentSerial = Math.max(...issued.map(t => t.serial), 1000);
-  localStorage.setItem("currentSerial", currentSerial);
-
-  showAssignments();
-    }
-
-    function exportJSON() {
-  const data = {
-    currentSerial: currentSerial,
-    issuedTickets: issued
-  };
-
-  const jsonStr = JSON.stringify(data, null, 2);
-  const blob = new Blob([jsonStr], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "raffle_backup.json";
-  link.click();
-
-  URL.revokeObjectURL(url);
-}
-
-
-function importJSON(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const data = JSON.parse(e.target.result);
-
-      if (!data.issuedTickets || !Array.isArray(data.issuedTickets)) {
-        alert("Invalid JSON file format.");
-        return;
-      }
-
-      // Restore data
-      issued = data.issuedTickets;
-      currentSerial = data.currentSerial || 1000;
-
-      // Save to localStorage
+      issued.splice(index, 1);
       localStorage.setItem("issuedTickets", JSON.stringify(issued));
+
+      currentSerial = issued.length > 0 ? Math.max(...issued.map(t => t.serial)) : 1000;
       localStorage.setItem("currentSerial", currentSerial);
 
       showAssignments();
-      alert("JSON data imported successfully!");
-    } catch (err) {
-      alert("Error reading JSON file.");
     }
-  };
 
-  reader.readAsText(file);
-}
+    function exportJSON() {
+      const data = {
+        currentSerial: currentSerial,
+        issuedTickets: issued
+      };
 
+      const jsonStr = JSON.stringify(data, null, 2);
+      const blob = new Blob([jsonStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "raffle_backup.json";
+      link.click();
+
+      URL.revokeObjectURL(url);
+    }
+
+    function importJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+
+          if (!data.issuedTickets || !Array.isArray(data.issuedTickets)) {
+            alert("Invalid JSON file format.");
+            return;
+          }
+
+          issued = data.issuedTickets;
+          currentSerial = data.currentSerial || 1000;
+
+          localStorage.setItem("issuedTickets", JSON.stringify(issued));
+          localStorage.setItem("currentSerial", currentSerial);
+
+          showAssignments();
+          alert("JSON data imported successfully!");
+        } catch (err) {
+          alert("Error reading JSON file.");
+        }
+      };
+
+      reader.readAsText(file);
+    }
+
+    // Show existing tickets on load, if any
+    window.onload = showAssignments;
   </script>
 </body>
 </html>
