@@ -251,7 +251,7 @@
         printArea.appendChild(stubDiv);
 
         // Generate QR code (serial + name)
-        new QRCode(document.getElementById(\`qrcode-${ticket.serial}\`), {
+        new QRCode(document.getElementById("qrcode-" + ticket.serial), {
           text: \`Ticket Serial: ${ticket.serial} | Assigned To: ${ticket.assignedTo}\`,
           width: 100,
           height: 100
