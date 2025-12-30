@@ -126,10 +126,11 @@
 
         const ticketDiv = document.createElement('div');
         ticketDiv.className = 'ticket';
-        ticketDiv.innerHTML = `
-          <strong class="clickable" onclick="showTicketPreview(${serial})">
-            Ticket Serial: ${serial}
-          </strong>
+         ticketDiv.innerHTML =
+          '<strong class="clickable" onclick="showTicketPreview(' + serial + ')">' +
+          'Ticket Serial: ' + serial +
+          '</strong> / Assigned To: ' + name;
+
           | Assigned To: ${name}
         `;
         ticketList.appendChild(ticketDiv);
@@ -147,10 +148,11 @@
       issued.forEach((ticket, index) => {
         const ticketDiv = document.createElement('div');
         ticketDiv.className = 'ticket';
-        ticketDiv.innerHTML = `
-          <strong class="clickable" onclick="showTicketPreview(${ticket.serial})">
-            Ticket Serial: ${ticket.serial}
-          </strong>
+        ticketDiv.innerHTML =
+        '<strong class="clickable" onclick="showTicketPreview(' + serial + ')">' +
+        'Ticket Serial: ' + serial +
+        '</strong> / Assigned To: ' + name;
+
           | Assigned To: ${ticket.assignedTo}
           <button onclick="deleteTicket(${index})" style="margin-left:10px;">Delete</button>
         `;
