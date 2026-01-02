@@ -124,7 +124,7 @@
       margin: 0.5in;
     }
 
-    @media print {
+   @media print {
       body * {
         visibility: hidden;
       }
@@ -145,8 +145,22 @@
         flex-wrap: wrap;
         align-items: flex-start;
       }
-    }
+    .stub {
+        page-break-inside: avoid;
+        break-inside: avoid;
+        margin-bottom: 20px;
+        height: 2in;
+        margin-bottom: 0.25;
+  }
+    .stub:nth-child(odd) {
+         page-break-after: auto;
+}       
 
+        .stub:nth-child(4n) {
+  page-break-after: always;
+}
+
+    }
     /* Modal styling */
     .modal {
       display: none;
