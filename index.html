@@ -104,7 +104,8 @@
 
     .stub-info p {
       margin: 4px 0;
-      font-size: 13px;
+      font-size: 16px;
+      font-weight: 400;
     }
 
     .stub-qr {
@@ -469,7 +470,6 @@ function buildStub(ticket, qrElementId) {
         '<div class="stub-body">' +
         '<div class="stub-info">' +
         '<p><strong>Assigned To:</strong> ' + ticket.assignedTo + '</p>' +
-        (ticketSettings.customText ? '<p>' + ticketSettings.customText + '</p>' : '') +
         '</div>' +
 
         '<div class="stub-qr"><div id="' + qrElementId + '"></div></div>' +
