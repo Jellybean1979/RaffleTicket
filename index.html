@@ -665,6 +665,29 @@ function importJSON(event) {
 
     reader.readAsText(file);
 }
+function downloadCSV() {
+    if (issued.length === 0) {
+        alert("No tickets issued yet.");
+        return;
+    }
+
+    let csv = "Serial,Assigned To\n";
+
+    issued.forEach(ticket => {
+        csv += `${ticket.serial},${ticket.assignedTo}\n`;
+    });
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "raffle_tickets.csv";
+    link.click();
+
+    URL.revokeObjectURL(url);
+}
+
 
 
 /* ===========================
