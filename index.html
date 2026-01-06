@@ -147,6 +147,11 @@
         flex-wrap: wrap;
         align-items: flex-start;
       }
+      
+      #printLoading, #printLoading * {
+    visibility:hidden !important;
+}
+
     .stub {
         page-break-inside: avoid;
         break-inside: avoid;
@@ -210,7 +215,45 @@
         font-size: 12px;
         margin-top: 2px;
     }
-        
+    
+        .print-loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999999;
+}
+
+.print-loading-box {
+    background: #fff;
+    padding: 20px 30px;
+    border-radius: 8px;
+    text-align: center;
+    font-family: "Courier New", monospace;
+    font-size: 18px;
+    border: 2px solid #333;
+}
+
+/* Optional spinner */
+.spinner {
+    width: 30px;
+    height: 30px;
+    border: 4px solid #ccc;
+    border-top-color: #333;
+    border-radius: 50%;
+    margin: 0 auto 10px;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
   </style>
 </head>
 <body>
@@ -278,6 +321,14 @@
       <button onclick="closeModal()">No, Cancel</button>
     </div>
   </div>
+  
+  <div id="printLoading" class="print-loading">
+    <div class="print-loading-box">
+        <div class="spinner"></div>
+        <p>Preparing tickets…</p>
+    </div>
+</div>
+
 
   <!-- QR Code library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -483,31 +534,51 @@ function buildStub(ticket, qrElementId) {
 }
 
 function printStubs() {
+
     if (issued.length === 0) {
         alert("No tickets issued yet.");
         return;
     }
 
-    const printArea = document.getElementById('printArea');
-    printArea.innerHTML = "";
-    printArea.style.display = "flex";
-    printArea.style.flexWrap = "wrap";
+    // 1. Show overlay immediately
+    document.getElementById("printLoading").style.display = "flex";
 
-    issued.forEach(ticket => {
-        const qrId = "qrcode-" + ticket.serial;
-        const stubDiv = buildStub(ticket, qrId);
-        printArea.appendChild(stubDiv);
+    // 2. Allow browser to render overlay BEFORE heavy work
+    setTimeout(() => {
 
-        new QRCode(document.getElementById(qrId), {
-            text: "Ticket Serial: " + ticket.serial + " | Assigned To: " + ticket.assignedTo,
-            width: 100,
-            height: 100
+        const printArea = document.getElementById('printArea');
+        printArea.innerHTML = "";
+        printArea.style.display = "flex";
+        printArea.style.flexWrap = "wrap";
+
+        // 3. Now build all tickets + QR codes
+        issued.forEach(ticket => {
+            const qrId = "qrcode-" + ticket.serial;
+            const stubDiv = buildStub(ticket, qrId);
+            printArea.appendChild(stubDiv);
+
+            new QRCode(document.getElementById(qrId), {
+                text: "Ticket Serial: " + ticket.serial + " | Assigned To: " + ticket.assignedTo,
+                width: 100,
+                height: 100
+            });
         });
-    });
 
-    window.print();
-    printArea.style.display = "none";
+        // 4. Now wait for Menlo/Edube to finish rendering
+        setTimeout(() => {
+            window.print();
+
+            // 5. Hide overlay AFTER print dialog appears
+            setTimeout(() => {
+                document.getElementById("printLoading").style.display = "none";
+            }, 300);
+
+        }, 500);
+
+    }, 50); // tiny delay to force overlay to paint
 }
+
+
 
 function printSingleTicket() {
     const serial = prompt("Enter the ticket serial number to print:");
@@ -519,24 +590,41 @@ function printSingleTicket() {
         return;
     }
 
-    const printArea = document.getElementById('printArea');
-    printArea.innerHTML = "";
-    printArea.style.display = "flex";
-    printArea.style.flexWrap = "wrap";
+    // 1. Show overlay immediately
+    document.getElementById("printLoading").style.display = "flex";
 
-    const qrId = "qrcode-single";
-    const stubDiv = buildStub(ticket, qrId);
-    printArea.appendChild(stubDiv);
+    // 2. Allow overlay to render BEFORE heavy work
+    setTimeout(() => {
 
-    new QRCode(document.getElementById(qrId), {
-        text: "Ticket Serial: " + ticket.serial + " | Assigned To: " + ticket.assignedTo,
-        width: 100,
-        height: 100
-    });
+        const printArea = document.getElementById('printArea');
+        printArea.innerHTML = "";
+        printArea.style.display = "flex";
+        printArea.style.flexWrap = "wrap";
 
-    window.print();
-    printArea.style.display = "none";
+        const qrId = "qrcode-single";
+        const stubDiv = buildStub(ticket, qrId);
+        printArea.appendChild(stubDiv);
+
+        new QRCode(document.getElementById(qrId), {
+            text: "Ticket Serial: " + ticket.serial + " | Assigned To: " + ticket.assignedTo,
+            width: 100,
+            height: 100
+        });
+
+        // 3. Wait for Menlo/Edube to finish rendering
+        setTimeout(() => {
+            window.print();
+
+            // 4. Hide overlay AFTER print dialog appears
+            setTimeout(() => {
+                document.getElementById("printLoading").style.display = "none";
+            }, 300);
+
+        }, 500);
+
+    }, 50); // tiny delay to force overlay to paint
 }
+
 
 function printTicketsByName() {
     const nameInput = prompt("Enter the name to print tickets for:");
@@ -550,26 +638,43 @@ function printTicketsByName() {
         return;
     }
 
-    const printArea = document.getElementById('printArea');
-    printArea.innerHTML = "";
-    printArea.style.display = "flex";
-    printArea.style.flexWrap = "wrap";
+    // 1. Show overlay immediately
+    document.getElementById("printLoading").style.display = "flex";
 
-    results.forEach(ticket => {
-        const qrId = "qrcode-name-" + ticket.serial;
-        const stubDiv = buildStub(ticket, qrId);
-        printArea.appendChild(stubDiv);
+    // 2. Allow overlay to render BEFORE heavy work
+    setTimeout(() => {
 
-        new QRCode(document.getElementById(qrId), {
-            text: "Ticket Serial: " + ticket.serial + " | Assigned To: " + ticket.assignedTo,
-            width: 100,
-            height: 100
+        const printArea = document.getElementById('printArea');
+        printArea.innerHTML = "";
+        printArea.style.display = "flex";
+        printArea.style.flexWrap = "wrap";
+
+        results.forEach(ticket => {
+            const qrId = "qrcode-name-" + ticket.serial;
+            const stubDiv = buildStub(ticket, qrId);
+            printArea.appendChild(stubDiv);
+
+            new QRCode(document.getElementById(qrId), {
+                text: "Ticket Serial: " + ticket.serial + " | Assigned To: " + ticket.assignedTo,
+                width: 100,
+                height: 100
+            });
         });
-    });
 
-    window.print();
-    printArea.style.display = "none";
+        // 3. Wait for Menlo/Edube to finish rendering
+        setTimeout(() => {
+            window.print();
+
+            // 4. Hide overlay AFTER print dialog appears
+            setTimeout(() => {
+                document.getElementById("printLoading").style.display = "none";
+            }, 300);
+
+        }, 500);
+
+    }, 50); // tiny delay to force overlay to paint
 }
+
 
 
 /* ===========================
