@@ -600,16 +600,12 @@ input[type="number"] { max-width: 100px; }
     background: white;
     z-index: 9999;
   }
-  .print-page {
-    width: 8.5in;
-    height: 11in;
+  .print-page-4up {
     page-break-after: always;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 0.5in;
-    background: white;
+  }
+  @page {
+    size: 8.5in 11in portrait;
+    margin: 0;
   }
 }
 
@@ -635,7 +631,7 @@ input[type="number"] { max-width: 100px; }
   border: 1.5px solid #333;
   border-radius: 6px;
   overflow: hidden;
-  height: 2.1in;
+  height: 1.55in;
   font-family: 'IBM Plex Sans', sans-serif;
   position: relative;
   background: white;
@@ -663,7 +659,7 @@ input[type="number"] { max-width: 100px; }
 
 .pt-org-name {
   font-family: 'Playfair Display', serif;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
   color: #1a1714;
   line-height: 1.2;
@@ -693,7 +689,7 @@ input[type="number"] { max-width: 100px; }
 }
 
 .pt-name {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
   color: #1a1714;
   margin-top: 1px;
@@ -706,7 +702,7 @@ input[type="number"] { max-width: 100px; }
 }
 
 .pt-qr { flex-shrink: 0; }
-.pt-qr canvas, .pt-qr img { width: 52px !important; height: 52px !important; }
+.pt-qr canvas, .pt-qr img { width: 40px !important; height: 40px !important; }
 
 .pt-footer {
   display: flex;
@@ -716,7 +712,7 @@ input[type="number"] { max-width: 100px; }
 
 .pt-ticket-num {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 600;
   color: #c0392b;
   letter-spacing: 1px;
@@ -765,7 +761,7 @@ input[type="number"] { max-width: 100px; }
 
 /* Ticket stub */
 .print-ticket-stub {
-  width: 0.95in;
+  width: 0.85in;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -841,15 +837,18 @@ input[type="number"] { max-width: 100px; }
 .print-ticket-wrap.accent-purple .pt-ticket-num { color: #6b21a8; }
 .print-ticket-wrap.accent-purple .pts-num { color: #d0a0ff; }
 
-/* 4 tickets per page layout */
+/* 8 tickets per page — 2 columns x 4 rows */
 .print-page-4up {
   width: 8.5in;
-  padding: 0.4in 0.5in;
+  min-height: 11in;
+  padding: 0.35in 0.4in;
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.2in;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(4, auto);
+  gap: 0.18in 0.2in;
   align-content: start;
   background: white;
+  box-sizing: border-box;
 }
 
 /* ============ TICKET PREVIEW (UI) ============ */
@@ -1143,7 +1142,7 @@ input[type="number"] { max-width: 100px; }
         <span class="tab-chevron">▼</span>
       </button>
       <div class="tab-panel" id="tab-print">
-        <p class="info-text" style="margin-bottom:14px">Tickets are formatted for 8.5×11" paper. 4 tickets per page in landscape orientation for easy cutting.</p>
+        <p class="info-text" style="margin-bottom:14px">Tickets are formatted for 8.5×11" paper. 8 tickets per page (2 columns × 4 rows) on portrait 8.5×11&quot; for easy cutting.</p>
         <div style="display:flex;flex-direction:column;gap:8px">
           <button class="btn btn-primary btn-full" onclick="openPrintSingleModal()">🖨 Print Single Ticket</button>
           <button class="btn btn-secondary btn-full" onclick="openPrintByNameModal()">👤 Print Tickets by Name</button>
@@ -1816,10 +1815,10 @@ function renderPrintArea(ticketList) {
   const area = document.getElementById('print-area');
   area.style.display = 'block';
 
-  // 4 tickets per page in a single column layout (each ticket is landscape-ish)
+  // 8 tickets per page — 2 columns x 4 rows
   let pages = [];
-  for (let i = 0; i < ticketList.length; i += 4) {
-    const pageTickets = ticketList.slice(i, i + 4);
+  for (let i = 0; i < ticketList.length; i += 8) {
+    const pageTickets = ticketList.slice(i, i + 8);
     pages.push(`<div class="print-page-4up" style="page-break-after:always;">
       ${pageTickets.map(buildTicketHTML).join('')}
     </div>`);
@@ -1837,8 +1836,8 @@ function renderPrintArea(ticketList) {
         try {
           new QRCode(div, {
             text: `Ticket: #${ticket.number} | Name: ${ticket.name}`,
-            width: 56,
-            height: 56,
+            width: 44,
+            height: 44,
             correctLevel: QRCode.CorrectLevel.M,
           });
         } catch(e) {}
