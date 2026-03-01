@@ -631,7 +631,7 @@ input[type="number"] { max-width: 100px; }
   border: 1.5px solid #333;
   border-radius: 6px;
   overflow: hidden;
-  height: 1.35in;
+  height: 100%;
   font-family: 'IBM Plex Sans', sans-serif;
   position: relative;
   background: white;
@@ -840,13 +840,12 @@ input[type="number"] { max-width: 100px; }
 /* 10 tickets per page — 2 columns x 5 rows */
 .print-page-4up {
   width: 8.5in;
-  min-height: 11in;
+  height: 11in;
   padding: 0.25in 0.35in;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: repeat(5, auto);
-  gap: 0.12in 0.18in;
-  align-content: start;
+  grid-template-rows: repeat(5, 1fr);
+  gap: 0.1in 0.18in;
   background: white;
   box-sizing: border-box;
 }
@@ -1940,8 +1939,10 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 // ============ VERSION TAG ============
 (function() {
   const buildDate = new Date(document.lastModified);
-  const pad = n => String(n).padStart(2, '0');
-  const hash = `${buildDate.getFullYear()}${pad(buildDate.getMonth()+1)}${pad(buildDate.getDate())}${pad(buildDate.getHours())}${pad(buildDate.getMinutes())}`;
+  // Generate a 7-char hex hash from the timestamp, matching GitHub short SHA style
+  const ts = buildDate.getTime();
+  const hashNum = (ts ^ (ts >>> 16)) * 0x45d9f3b;
+  const hash = Math.abs(hashNum).toString(16).padStart(8, '0').slice(0, 7);
   document.getElementById('versionTag').textContent = `by Gary Langley — build ${hash}`;
 })();
 
