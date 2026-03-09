@@ -984,7 +984,7 @@ input[type="number"] { max-width: 100px; }
         <div class="logo-text">RaffleForge</div>
         <span class="badge badge-accent" style="font-size:10px;">STUDIO</span>
       </div>
-      <strong id="versionTag" style="font-size:0.72em;display:block;font-weight:500;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;letter-spacing:0.3px;margin-top:1px;">
+      <strong id="versionTag" style="font-size: 0.8em; display: block;">
         by Gary Langley — loading version…
       </strong>
     </div>
@@ -1937,14 +1937,23 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 });
 
 // ============ VERSION TAG ============
-(function() {
-  const buildDate = new Date(document.lastModified);
-  // Generate a 7-char hex hash from the timestamp, matching GitHub short SHA style
-  const ts = buildDate.getTime();
-  const hashNum = (ts ^ (ts >>> 16)) * 0x45d9f3b;
-  const hash = Math.abs(hashNum).toString(16).padStart(8, '0').slice(0, 7);
-  document.getElementById('versionTag').textContent = `by Gary Langley — build ${hash}`;
-})();
+async function updateCommitHash() {
+    const repo = "jellybean1979/RaffleTicket";
+    const branch = "main";
+
+    try {
+        const response = await fetch(`https://api.github.com/repos/${repo}/commits/${branch}`);
+        const data = await response.json();
+        const hash = data.sha.substring(0, 7);
+
+        document.getElementById("versionTag").textContent =
+            `by Gary Langley — build ${hash}`;
+    } catch (err) {
+        document.getElementById("versionTag").textContent =
+            "by Gary Langley — build unknown";
+    }
+}
+updateCommitHash();
 
 // ============ INIT ============
 loadState();
